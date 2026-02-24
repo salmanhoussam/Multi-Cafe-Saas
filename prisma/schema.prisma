@@ -2,12 +2,14 @@ generator client {
   provider                    = "prisma-client-py"
   enable_experimental_decimal = true
   recursive_type_depth        = -1
+  previewFeatures             = ["multiSchema"]
 }
 
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
 }
 
 enum Role {
@@ -40,7 +42,11 @@ model Restaurant {
   isActive Boolean @default(true) @map("is_active")
   imageUrl String? @map("image_url")
 
-  // العلاقات (Relations)
+  // 👇 العلاقة مع User (المدير) - تمت الإضافة هنا
+  managerId String? @unique @map("manager_id")
+  manager   User?   @relation("RestaurantManager", fields: [managerId], references: [id])
+
+  // العلاقات الأخرى
   categories Category[]
   menuItems  MenuItem[]
   orders     Order[]
