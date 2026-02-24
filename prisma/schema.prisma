@@ -1,0 +1,154 @@
+generator client {
+  provider                    = "prisma-client-py"
+  enable_experimental_decimal = true
+  recursive_type_depth        = -1
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  MANAGER
+  STAFF
+}
+
+model User {
+  id         String      @id @default(uuid()) @map("id")
+  email      String      @unique @map("email")
+  password   String      @map("password")
+  role       Role        @default(MANAGER) @map("role")
+  restaurant Restaurant? @relation("RestaurantManager")
+  createdAt  DateTime    @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Restaurant {
+  id       String  @id @default(uuid()) @map("id")
+  nameAr   String  @map("name_ar")
+  nameEn   String  @map("name_en")
+  slug     String  @unique @map("slug")
+  phone    String? @map("phone")
+  isActive Boolean @default(true) @map("is_active")
+  imageUrl String? @map("image_url")
+  password String  @map("password")
+
+  managerId String? @unique @map("manager_id")
+  manager   User?   @relation("RestaurantManager", fields: [managerId], references: [id])
+
+  categories Category[]
+  menuItems  MenuItem[]
+  orders     Order[]
+  sales      Sale[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("restaurants")
+}
+
+model Category {
+  id        String  @id @default(uuid()) @map("id")
+  nameAr    String  @map("name_ar")
+  nameEn    String  @map("name_en")
+  sortOrder Int     @default(0) @map("sort_order")
+  imageUrl  String? @map("image_url")
+
+  restaurantId String     @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  menuItems MenuItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("categories")
+}
+
+model MenuItem {
+  id            String  @id @default(uuid()) @map("id")
+  nameAr        String  @map("name_ar")
+  nameEn        String  @map("name_en")
+  descriptionAr String? @map("description_ar")
+  descriptionEn String? @map("description_en")
+  price         Decimal @map("price")
+  currency      String  @default("USD") @map("currency")
+  imageUrl      String? @map("image_url")
+  isAvailable   Boolean @default(true) @map("is_available")
+
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  restaurantId String     @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("menu_items")
+}
+
+model Order {
+  id            String  @id @default(uuid()) @map("id")
+  customerName  String? @map("customer_name")
+  customerPhone String? @map("customer_phone")
+  totalPrice    Decimal @map("total_price")
+  currency      String  @default("USD") @map("currency")
+  status        String  @default("PENDING") @map("status")
+
+  restaurantId String     @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  items    OrderItem[]
+  delivery Delivery?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid()) @map("id")
+  quantity  Int     @map("quantity")
+  unitPrice Decimal @map("unit_price")
+  notes     String? @map("notes")
+
+  orderId String @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  menuItemId String   @map("menu_item_id")
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+
+  @@map("order_items")
+}
+
+model Sale {
+  id           String  @id @default(uuid()) @map("id")
+  totalAmount  Decimal @map("total_amount")
+  orderDetails Json?   @map("order_details")
+
+  restaurantId String     @map("restaurant_id")
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("sales")
+}
+
+model Delivery {
+  id              String  @id @default(uuid()) @map("id")
+  driverName      String? @map("driver_name")
+  driverPhone     String? @map("driver_phone")
+  deliveryAddress String  @map("delivery_address")
+  deliveryStatus  String  @default("DISPATCHED") @map("delivery_status")
+
+  orderId String @unique @map("order_id")
+  order   Order  @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("deliveries")
+}

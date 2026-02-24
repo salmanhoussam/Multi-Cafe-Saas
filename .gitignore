@@ -1,0 +1,14 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Frontend (Node)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# Prisma & OS
+prisma/dev.db
+.DS_Store
