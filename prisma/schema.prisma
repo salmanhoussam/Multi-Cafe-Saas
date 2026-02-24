@@ -12,150 +12,102 @@ datasource db {
   schemas   = ["public", "auth"]
 }
 
-enum Role {
-  SUPER_ADMIN
-  MANAGER
-  STAFF
-}
+model menu_items {
+  id             String   @id @default(uuid()) @map("id")
+  category_id    String   @map("category_id")
+  restaurant_id  String   @map("restaurant_id")
+  name_ar        String   @map("name_ar")
+  name_en        String   @map("name_en")
+  image_url      String?  @map("image_url")
+  description_en String?  @map("description_en")
+  description_ar String?  @map("description_ar")
+  price          Decimal  @map("price")
+  currency       String   @default("USD") @map("currency")
+  is_available   Boolean  @default(true) @map("is_available")
+  created_at     DateTime @default(now()) @map("created_at")
 
-model User {
-  id         String      @id @default(uuid()) @map("id")
-  email      String      @unique @map("email")
-  password   String      @map("password")
-  role       Role        @default(MANAGER) @map("role")
-  restaurant Restaurant? @relation("RestaurantManager")
-  createdAt  DateTime    @default(now()) @map("created_at")
-
-  @@map("users")
-}
-
-model Restaurant {
-  id       String  @id @default(uuid()) @map("id")
-  nameAr   String  @map("name_ar")
-  nameEn   String  @map("name_en")
-  
-  // بيانات تسجيل الدخول للمدير
-  slug     String  @unique @map("slug")      // السلوغ سيُستخدم كاسم مستخدم
-  password String  @map("password")          // كلمة المرور الخاصة بالمطعم
-
-  phone    String? @map("phone")
-  isActive Boolean @default(true) @map("is_active")
-  imageUrl String? @map("image_url")
-
-  // 👇 العلاقة مع User (المدير) - تمت الإضافة هنا
-  managerId String? @unique @map("manager_id")
-  manager   User?   @relation("RestaurantManager", fields: [managerId], references: [id])
-
-  // العلاقات الأخرى
-  categories Category[]
-  menuItems  MenuItem[]
-  orders     Order[]
-  sales      Sale[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("restaurants")
-}
-
-model Category {
-  id        String  @id @default(uuid()) @map("id")
-  nameAr    String  @map("name_ar")
-  nameEn    String  @map("name_en")
-  sortOrder Int     @default(0) @map("sort_order")
-  imageUrl  String? @map("image_url")
-
-  restaurantId String     @map("restaurant_id")
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-
-  menuItems MenuItem[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("categories")
-}
-
-model MenuItem {
-  id            String  @id @default(uuid()) @map("id")
-  nameAr        String  @map("name_ar")
-  nameEn        String  @map("name_en")
-  descriptionAr String? @map("description_ar")
-  descriptionEn String? @map("description_en")
-  price         Decimal @map("price")
-  currency      String  @default("USD") @map("currency")
-  imageUrl      String? @map("image_url")
-  isAvailable   Boolean @default(true) @map("is_available")
-
-  categoryId String   @map("category_id")
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  restaurantId String     @map("restaurant_id")
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-
-  orderItems OrderItem[]
-
-  createdAt DateTime @default(now()) @map("created_at")
+  categories categories? @relation(fields: [category_id], references: [id])
+  restaurants restaurants? @relation(fields: [restaurant_id], references: [id])
+  order_items order_items[]
 
   @@map("menu_items")
 }
 
-model Order {
-  id            String  @id @default(uuid()) @map("id")
-  customerName  String? @map("customer_name")
-  customerPhone String? @map("customer_phone")
-  totalPrice    Decimal @map("total_price")
-  currency      String  @default("USD") @map("currency")
-  status        String  @default("PENDING") @map("status")
+model categories {
+  id            String   @id @default(uuid()) @map("id")
+  restaurant_id String   @map("restaurant_id")
+  name_ar       String   @map("name_ar")
+  name_en       String   @map("name_en")
+  sort_order    Int      @default(0) @map("sort_order")
+  created_at    DateTime @default(now()) @map("created_at")
+  image_url     String?  @map("image_url")
 
-  restaurantId String     @map("restaurant_id")
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurants  restaurants? @relation(fields: [restaurant_id], references: [id])
+  menu_items   menu_items[]
 
-  items    OrderItem[]
-  delivery Delivery?
+  @@map("categories")
+}
 
-  createdAt DateTime @default(now()) @map("created_at")
+model orders {
+  id             String   @id @default(uuid()) @map("id")
+  restaurant_id  String   @map("restaurant_id")
+  customer_name  String?  @map("customer_name")
+  customer_phone String?  @map("customer_phone")
+  items          Json     @map("items")
+  total_price    Decimal  @map("total_price")
+  currency       String   @default("USD") @map("currency")
+  status         String   @default("PENDING") @map("status")
+  created_at     DateTime @default(now()) @map("created_at")
+
+  restaurants    restaurants? @relation(fields: [restaurant_id], references: [id])
+  order_items    order_items[]
 
   @@map("orders")
 }
 
-model OrderItem {
-  id        String  @id @default(uuid()) @map("id")
-  quantity  Int     @map("quantity")
-  unitPrice Decimal @map("unit_price")
-  notes     String? @map("notes")
+model order_items {
+  id           String   @id @default(uuid()) @map("id")
+  order_id     String   @map("order_id")
+  menu_item_id String   @map("menu_item_id")
+  quantity     Int      @map("quantity")
+  unit_price   Decimal  @map("unit_price")
+  notes        String?  @map("notes")
 
-  orderId String @map("order_id")
-  order   Order  @relation(fields: [orderId], references: [id])
-
-  menuItemId String   @map("menu_item_id")
-  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  orders       orders?   @relation(fields: [order_id], references: [id])
+  menu_items   menu_items? @relation(fields: [menu_item_id], references: [id])
 
   @@map("order_items")
 }
 
-model Sale {
-  id           String  @id @default(uuid()) @map("id")
-  totalAmount  Decimal @map("total_amount")
-  orderDetails Json?   @map("order_details")
+model sales {
+  id            String   @id @default(uuid()) @map("id")
+  restaurant_id String   @map("restaurant_id")
+  total_amount  Decimal  @map("total_amount")
+  order_details Json?    @map("order_details")
+  created_at    DateTime @default(now()) @map("created_at")
 
-  restaurantId String     @map("restaurant_id")
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
+  restaurants   restaurants? @relation(fields: [restaurant_id], references: [id])
 
   @@map("sales")
 }
 
-model Delivery {
-  id              String  @id @default(uuid()) @map("id")
-  driverName      String? @map("driver_name")
-  driverPhone     String? @map("driver_phone")
-  deliveryAddress String  @map("delivery_address")
-  deliveryStatus  String  @default("DISPATCHED") @map("delivery_status")
+model restaurants {
+  id           String   @id @default(uuid()) @map("id")
+  name_ar      String   @map("name_ar")
+  name_en      String   @map("name_en")
+  slug         String   @unique @map("slug")
+  manager_phone String? @map("manager_phone")
+  is_active    Boolean  @default(true) @map("is_active")
+  image_url    String?  @map("image_url")
+  created_at   DateTime @default(now()) @map("created_at")
+  phone        String?  @map("phone")
+  password     String   @map("password")
+  manager_id   String?  @unique @map("manager_id")
 
-  orderId String @unique @map("order_id")
-  order   Order  @relation(fields: [orderId], references: [id])
+  categories  categories[]
+  menu_items  menu_items[]
+  orders      orders[]
+  sales       sales[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("deliveries")
+  @@map("restaurants")
 }
