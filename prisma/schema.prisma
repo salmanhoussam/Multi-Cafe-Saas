@@ -31,15 +31,16 @@ model Restaurant {
   id       String  @id @default(uuid()) @map("id")
   nameAr   String  @map("name_ar")
   nameEn   String  @map("name_en")
-  slug     String  @unique @map("slug")
+  
+  // بيانات تسجيل الدخول للمدير
+  slug     String  @unique @map("slug")      // السلوغ سيُستخدم كاسم مستخدم
+  password String  @map("password")          // كلمة المرور الخاصة بالمطعم
+
   phone    String? @map("phone")
   isActive Boolean @default(true) @map("is_active")
   imageUrl String? @map("image_url")
-  password String  @map("password")
 
-  managerId String? @unique @map("manager_id")
-  manager   User?   @relation("RestaurantManager", fields: [managerId], references: [id])
-
+  // العلاقات (Relations)
   categories Category[]
   menuItems  MenuItem[]
   orders     Order[]
