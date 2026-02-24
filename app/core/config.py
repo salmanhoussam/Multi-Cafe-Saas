@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Restaurant SaaS"
+    PROJECT_NAME: str = "Multi-Menu-Saas"
     VERSION: str = "1.0.0"
     
     # 🔗 إعدادات قاعدة البيانات (أساسية) - ضرورية لـ Prisma
@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     TIMEZONE: str = "Asia/Beirut"
     
     # 🚀 إعدادات إضافية
-    ENVIRONMENT: str = "development"  # development/production
+    ENVIRONMENT: str = "production"
     PORT: int = 8000
 
     class Config:
