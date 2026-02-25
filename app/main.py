@@ -1,50 +1,58 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, HTTPException
+from app.supabase import supabase
 import logging
-import os
 
-from app.routes import menu, orders, dashboard
-from app.database import db
-from contextlib import asynccontextmanager
-
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
+router = APIRouter()
+
+@router.get("/menu/full/{slug}")
+async def get_full_menu(slug: str):
     try:
-        await db.connect()
-        logger.info("✅ Database connected")
+        # 1️⃣ جلب المطعم
+        res_restaurant = (
+            supabase
+            .table("restaurants")
+            .select("*")
+            .eq("slug", slug)
+            .maybe_single()
+            .execute()
+        )
+        restaurant = res_restaurant.data
+        if not restaurant:
+            raise HTTPException(status_code=404, detail="Restaurant not found")
+
+        restaurant_id = restaurant["id"]
+
+        # 2️⃣ جلب الفئات
+        res_categories = (
+            supabase
+            .table("categories")
+            .select("*")
+            .eq("restaurant_id", restaurant_id)
+            .order("sort_order", desc=False)
+            .execute()
+        )
+        categories = res_categories.data or []
+
+        # 3️⃣ جلب الأصناف
+        res_items = (
+            supabase
+            .table("menu_items")
+            .select("*")
+            .eq("restaurant_id", restaurant_id)
+            .execute()
+        )
+        items = res_items.data or []
+
+        return {
+            "restaurant": restaurant,
+            "categories": categories,
+            "items": items
+        }
+
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"❌ Database connection failed: {e}")
-    yield
-    if hasattr(db, '_connected') and db._connected:
-        await db.disconnect()
-        logger.info("🛑 Database connection closed")
-
-app = FastAPI(title="Restaurant SaaS", lifespan=lifespan)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# تضمين الرواتر مباشرة (بدون try/except)
-app.include_router(menu.router, prefix="/api")
-app.include_router(orders.router, prefix="/api")
-app.include_router(dashboard.router, prefix="/api")
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
-
-@app.get("/")
-async def root():
-    return {"message": "Restaurant SaaS API"}
-
-if __name__ == "__main__":
-    import uvicorn
-    port = int(os.getenv("PORT", "8000"))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
+        logger.error(f"🔥 ERROR in /menu/full/{slug}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
