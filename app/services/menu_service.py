@@ -9,7 +9,7 @@ async def get_menu_by_slug(slug: str):
         where={"slug": slug, "is_active": True}
     )
     if not restaurant:
-        return None  # إذا لم يجد المطعم، نرجع None
+        return None
 
     restaurant_id = restaurant.id
 
@@ -24,7 +24,7 @@ async def get_menu_by_slug(slug: str):
         where={"restaurant_id": restaurant_id}
     )
 
-    # 4. تجميع البيانات للفرونت إند
+    # 4. تجميع البيانات
     return {
         "restaurant": {
             "id": restaurant.id,
@@ -54,7 +54,7 @@ async def get_menu_by_slug(slug: str):
                 "name_en": item.name_en,
                 "description_ar": item.description_ar,
                 "description_en": item.description_en,
-                "price": float(item.price),  # تحويل Decimal إلى float للـ JSON
+                "price": float(item.price),
                 "currency": item.currency,
                 "image_url": item.image_url,
                 "is_available": item.is_available
