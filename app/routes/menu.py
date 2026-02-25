@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from app.supabase import supabase  # ✅ استيراد من supabase.py
+from app.supabase import supabase
+
 router = APIRouter()
 
 @router.get("/menu/full/{slug}")
 async def get_full_menu(slug: str):
     try:
-        # 1️⃣ جلب المطعم
         res_restaurant = (
             supabase
             .table("restaurants")
@@ -20,7 +20,6 @@ async def get_full_menu(slug: str):
 
         restaurant_id = restaurant["id"]
 
-        # 2️⃣ جلب الفئات
         res_categories = (
             supabase
             .table("categories")
@@ -31,7 +30,6 @@ async def get_full_menu(slug: str):
         )
         categories = res_categories.data or []
 
-        # 3️⃣ جلب الأصناف
         res_items = (
             supabase
             .table("menu_items")
@@ -41,7 +39,6 @@ async def get_full_menu(slug: str):
         )
         items = res_items.data or []
 
-        # 4️⃣ إعادة البيانات بالهيكل المطلوب
         return {
             "restaurant": restaurant,
             "categories": categories,

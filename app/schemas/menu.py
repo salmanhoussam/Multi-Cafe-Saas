@@ -1,7 +1,5 @@
-# app/schemas/menu.py
 from pydantic import BaseModel
 from typing import Optional, List
-
 class RestaurantOut(BaseModel):
     id: str
     name_ar: str
@@ -22,6 +20,7 @@ class CategoryOut(BaseModel):
 
 class MenuItemOut(BaseModel):
     id: str
+    restaurant_id: str
     category_id: Optional[str] = None
     name_ar: str
     name_en: str
@@ -31,8 +30,10 @@ class MenuItemOut(BaseModel):
     currency: str
     image_url: Optional[str] = None
     is_available: bool
-
+    
+MenuItem = MenuItemOut
 class FullMenuOut(BaseModel):
     restaurant: RestaurantOut
     categories: List[CategoryOut]
     items: List[MenuItemOut]
+    
