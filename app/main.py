@@ -3,14 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import db
 from app.routes import menu, orders, dashboard 
 from contextlib import asynccontextmanager
-
+from app.core.config import settings
 # 1️⃣ أضفنا dashboard هنا
 from app.routes import menu, orders, dashboard
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
-    
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
