@@ -1,14 +1,38 @@
+# app/schemas/menu.py
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
-class MenuItem(BaseModel):
+class RestaurantOut(BaseModel):
     id: str
     name_ar: str
     name_en: str
-    price: float          # Prisma يستخدم Decimal، نحتاج تحويل
-    currency: str = "$"
+    slug: str
     image_url: Optional[str] = None
+    is_active: bool
+    phone: Optional[str] = None
+    manager_id: Optional[str] = None
 
-    class Config:
-        # للسماح بالتحويل من كائن Prisma (الذي قد يحتوي على أسماء حقول مختلفة)
-        from_attributes = True
+class CategoryOut(BaseModel):
+    id: str
+    name_ar: str
+    name_en: str
+    sort_order: int
+    image_url: Optional[str] = None
+    restaurant_id: str
+
+class MenuItemOut(BaseModel):
+    id: str
+    category_id: Optional[str] = None
+    name_ar: str
+    name_en: str
+    description_ar: Optional[str] = None
+    description_en: Optional[str] = None
+    price: float
+    currency: str
+    image_url: Optional[str] = None
+    is_available: bool
+
+class FullMenuOut(BaseModel):
+    restaurant: RestaurantOut
+    categories: List[CategoryOut]
+    items: List[MenuItemOut]

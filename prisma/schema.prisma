@@ -31,7 +31,9 @@ model menu_items {
   order_items order_items[]
 
   @@map("menu_items")
-  @@schema("public")  // 👈 أضف هذا السطر
+  @@schema("public")  
+  @@index([restaurant_id])
+  @@index([category_id])
 }
 
 model categories {
@@ -47,7 +49,8 @@ model categories {
   menu_items   menu_items[]
 
   @@map("categories")
-  @@schema("public")  // 👈 أضف هذا السطر
+  @@schema("public")
+  @@index([restaurant_id])
 }
 
 model orders {
@@ -65,7 +68,7 @@ model orders {
   order_items    order_items[]
 
   @@map("orders")
-  @@schema("public")  // 👈 أضف هذا السطر
+  @@schema("public")
 }
 
 model order_items {
@@ -80,7 +83,7 @@ model order_items {
   menu_items   menu_items? @relation(fields: [menu_item_id], references: [id])
 
   @@map("order_items")
-  @@schema("public")  // 👈 أضف هذا السطر
+  @@schema("public")
 }
 
 model sales {
@@ -93,7 +96,7 @@ model sales {
   restaurants   restaurants? @relation(fields: [restaurant_id], references: [id])
 
   @@map("sales")
-  @@schema("public")  // 👈 أضف هذا السطر
+  @@schema("public")
 }
 
 model restaurants {
@@ -115,5 +118,5 @@ model restaurants {
   sales       sales[]
 
   @@map("restaurants")
-  @@schema("public")  // 👈 أضف هذا السطر
+  @@schema("public")
 }

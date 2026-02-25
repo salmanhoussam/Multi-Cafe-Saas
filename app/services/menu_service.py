@@ -1,12 +1,12 @@
-from app.database import db
+from app.database import db  # تأكد أن db هو عميل Prisma
 
 async def get_menu_by_slug(slug: str):
     """
     هذه الدالة تجلب بيانات المطعم، الفئات، والأصناف من قاعدة البيانات
     """
     # 1. جلب المطعم
-    restaurant = await db.restaurant.find_first(
-        where={"slug": slug}
+    restaurant = await db.restaurants.find_unique(
+        where={"slug": slug, "is_active": True}
     )
     if not restaurant:
         return None  # إذا لم يجد المطعم، نرجع None
@@ -14,49 +14,50 @@ async def get_menu_by_slug(slug: str):
     restaurant_id = restaurant.id
 
     # 2. جلب الفئات
-    categories = await db.category.find_many(
-        where={"restaurantId": restaurant_id},
-        order={"sortOrder": "asc"}
+    categories = await db.categories.find_many(
+        where={"restaurant_id": restaurant_id},
+        order={"sort_order": "asc"}
     )
 
     # 3. جلب أصناف المنيو
-    items = await db.menuitem.find_many(
-        where={"restaurantId": restaurant_id}
+    items = await db.menu_items.find_many(
+        where={"restaurant_id": restaurant_id}
     )
 
     # 4. تجميع البيانات للفرونت إند
     return {
         "restaurant": {
             "id": restaurant.id,
-            "name_ar": restaurant.nameAr,
-            "name_en": restaurant.nameEn,
+            "name_ar": restaurant.name_ar,
+            "name_en": restaurant.name_en,
             "slug": restaurant.slug,
             "phone": restaurant.phone,
-            "is_active": restaurant.isActive,
-            "image_url": restaurant.imageUrl,
-            "manager_id": restaurant.managerId
+            "is_active": restaurant.is_active,
+            "image_url": restaurant.image_url,
+            "manager_id": restaurant.manager_id
         },
         "categories": [
             {
                 "id": cat.id,
-                "name_ar": cat.nameAr,
-                "name_en": cat.nameEn,
-                "sort_order": cat.sortOrder,
-                "image_url": cat.imageUrl,
-                "restaurant_id": cat.restaurantId
+                "name_ar": cat.name_ar,
+                "name_en": cat.name_en,
+                "sort_order": cat.sort_order,
+                "image_url": cat.image_url,
+                "restaurant_id": cat.restaurant_id
             } for cat in categories
         ],
         "items": [
             {
                 "id": item.id,
-                "category_id": item.categoryId, # 👈 أضف هذا السطر
-                "name_ar": item.nameAr,
-                "name_en": item.nameEn,
-                "description_ar": item.descriptionAr, # 👈 أضف هذا السطر
-                "description_en": item.descriptionEn, # 👈 أضف هذا السطر
-                "price": float(item.price),
+                "category_id": item.category_id,
+                "name_ar": item.name_ar,
+                "name_en": item.name_en,
+                "description_ar": item.description_ar,
+                "description_en": item.description_en,
+                "price": float(item.price),  # تحويل Decimal إلى float للـ JSON
                 "currency": item.currency,
-                "image_url": item.imageUrl
+                "image_url": item.image_url,
+                "is_available": item.is_available
             } for item in items
         ]
     }
