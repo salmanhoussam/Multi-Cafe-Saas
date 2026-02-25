@@ -1,12 +1,15 @@
-from app.database import db  # تأكد أن db هو عميل Prisma
+from app.database import db  
 
 async def get_menu_by_slug(slug: str):
     """
     هذه الدالة تجلب بيانات المطعم، الفئات، والأصناف من قاعدة البيانات
     """
-    # 1. جلب المطعم
-    restaurant = await db.restaurants.find_unique(
-        where={"slug": slug, "is_active": True}
+    # 1. جلب المطعم (استخدمنا find_first بدلاً من find_unique)
+    restaurant = await db.restaurants.find_first(
+        where={
+            "slug": slug, 
+            "is_active": True
+        }
     )
     if not restaurant:
         return None
@@ -49,6 +52,7 @@ async def get_menu_by_slug(slug: str):
         "items": [
             {
                 "id": item.id,
+                "restaurant_id": item.restaurant_id, # تمت إضافته ليتطابق مع الـ Schema
                 "category_id": item.category_id,
                 "name_ar": item.name_ar,
                 "name_en": item.name_en,
