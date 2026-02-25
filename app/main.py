@@ -39,3 +39,7 @@ async def health():
         "status": "ok",
         "database": "connected" if db.is_connected() else "disconnected"
     }
+if __name__ == "__main__":
+    import uvicorn
+    port = settings.PORT  # استخدام PORT من الإعدادات (8000 افتراضياً)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
