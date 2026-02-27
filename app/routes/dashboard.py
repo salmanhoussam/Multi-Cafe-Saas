@@ -1,29 +1,21 @@
-from fastapi import APIRouter, HTTPException, Depends, Security
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+# app/routers/dashboard.py
+from fastapi import APIRouter, HTTPException, Depends
 from app.services.dashboard_service import get_dashboard_summary_data
-import jwt
-import os
+from app.auth import get_current_user
 
-router = APIRouter()
-security = HTTPBearer()
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-please-change")
+# ✅ تم تعديل الـ prefix ليطابق الفرونت إند
+router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
-    token = credentials.credentials
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        return payload
-    except jwt.PyJWTError:
-        raise HTTPException(status_code=403, detail="Invalid token")
-
-@router.get("/dashboard/{restaurant_id}/summary")
+# ✅ تم إزالة {restaurant_id} من الرابط
+@router.get("/summary")
 async def get_dashboard_summary(
-    restaurant_id: str,
     user: dict = Depends(get_current_user)
 ):
-    # تأكد أن المستخدم يحاول الوصول إلى مطعمه فقط
-    if user.get("restaurant_id") != restaurant_id:
-        raise HTTPException(status_code=403, detail="Access denied")
+    # ✅ استخراج restaurant_id مباشرة من التوكن
+    restaurant_id = user.get("restaurant_id")
+    
+    if not restaurant_id:
+        raise HTTPException(status_code=403, detail="Access denied: No restaurant linked to this token")
     
     try:
         return await get_dashboard_summary_data(restaurant_id)
