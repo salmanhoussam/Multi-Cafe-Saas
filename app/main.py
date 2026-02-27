@@ -1,18 +1,25 @@
 import os
 import logging
+from datetime import datetime  # أضف هذا
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
 
+# تحميل متغيرات البيئة المحلية (للتطوير فقط)
+load_dotenv()
+
+# إعداد التسجيل
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# 1. إعداد Lifespan للاتصال بـ Prisma بشكل صحيح وآمن
+# استيراد قاعدة البيانات مرة واحدة
+from app.database import db
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("⏳ Attempting to connect Prisma database...")
     try:
-        from app.database import db
         await db.connect()
         logger.info("✅ Prisma Database connected successfully")
     except Exception as e:
@@ -21,29 +28,40 @@ async def lifespan(app: FastAPI):
     yield 
     
     try:
-        from app.database import db
         await db.disconnect()
         logger.info("✅ Prisma Database disconnected successfully")
     except Exception as e:
         logger.error(f"❌ Prisma Database disconnection failed: {e}")
 
-# 2. إنشاء التطبيق مع تفعيل lifespan
+# إنشاء التطبيق مع تفعيل lifespan
 app = FastAPI(title="Restaurant SaaS", lifespan=lifespan)
 
+# نقاط نهاية الصحة
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    try:
+        from app.database import db
+        db_connected = db.is_connected() if hasattr(db, 'is_connected') else "unknown"
+    except:
+        db_connected = "error"
+
+    return {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat(),
+        "database": db_connected
+    }
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
-# 3. استيراد الرواتر
+# استيراد الرواتر
 try:
-    from app.routes import menu, orders, dashboard
+    from app.routes import menu, orders, dashboard, auth
     app.include_router(menu.router, prefix="/api")
     app.include_router(orders.router, prefix="/api")
     app.include_router(dashboard.router, prefix="/api")
+    app.include_router(auth.router, prefix="/api")
     logger.info("✅ Routers imported successfully")
 except Exception as e:
     logger.error(f"❌ Failed to import routers: {e}")

@@ -37,6 +37,7 @@ async def get_menu_by_slug(slug: str):
             "phone": restaurant.phone,
             "is_active": restaurant.is_active,
             "image_url": restaurant.image_url,
+            "cover_image": restaurant.cover_image,
             "manager_id": restaurant.manager_id
         },
         "categories": [

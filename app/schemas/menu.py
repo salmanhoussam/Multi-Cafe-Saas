@@ -6,6 +6,7 @@ class RestaurantOut(BaseModel):
     name_en: str
     slug: str
     image_url: Optional[str] = None
+    cover_image: Optional[str] = None,
     is_active: bool
     phone: Optional[str] = None
     manager_id: Optional[str] = None
