@@ -64,8 +64,8 @@ app.add_middleware(
 )
 
 @app.get("/health")
-async def health():
-    return {"status": "ok", "timestamp": datetime.utcnow().isoformat()}
+async def health_check():
+    return {"status": "healthy"}
 
 @app.get("/")
 async def root():
