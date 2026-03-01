@@ -5,6 +5,7 @@ __pycache__/
 .env
 .env.production
 .env.development
+
 # Frontend (Node)
 frontend/node_modules/
 frontend/dist/
