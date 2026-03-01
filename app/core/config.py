@@ -32,15 +32,15 @@ class Settings(BaseSettings):
     
     # 🌍 إعدادات CORS (محدثة)
     CORS_ORIGINS: List[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://localhost:8000",
-        "https://resto.salmansaas.com",
-        "https://admin.salmansaas.com",
-        # دعم جميع الـ subdomains
-        "https://*.salmansaas.com",
-    ]
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "https://resto.salmansaas.com",      # ✅ فرونت إند المطاعم
+    "https://admin.salmansaas.com",       # ✅ فرونت إند الإدارة
+    "https://menu1.salmansaas.com",       # ✅ الباك إند نفسه (للضرورة)
+    "https://*.salmansaas.com",           # ✅ جميع النطاقات الفرعية
+]
     
     # 📁 إعدادات رفع الملفات
     UPLOAD_DIR: str = "uploads"
