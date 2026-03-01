@@ -1,78 +1,107 @@
 # app/main.py
 import os
 import logging
-from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from dotenv import load_dotenv
 
-load_dotenv()
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
+from app.core.config import settings
 from app.database import db
+
+# ✅ استيراد مباشر من الملفات (وليس من المجلدات)
+from app.api.v1.public.menu import router as public_menu_router
+from app.api.v1.public.orders import router as public_orders_router
+from app.api.v1.admin.auth import router as admin_auth_router
+from app.api.v1.admin.dashboard import router as admin_dashboard_router
+from app.api.v1.admin.categories import router as admin_categories_router
+from app.api.v1.admin.menu_items import router as admin_menu_items_router
+from app.api.v1.admin.upload import router as admin_upload_router
+
+# إعداد التسجيل
+logging.basicConfig(
+    level=logging.INFO if settings.is_production() else logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("⏳ Attempting to connect Prisma database...")
+    # بدء التشغيل
+    logger.info(f"🚀 Starting {settings.PROJECT_NAME} v{settings.VERSION}")
+    logger.info(f"🌍 Environment: {settings.ENVIRONMENT}")
+    
+    logger.info("⏳ Connecting to database...")
     try:
         await db.connect()
-        logger.info("✅ Prisma Database connected successfully")
+        logger.info("✅ Database connected successfully")
     except Exception as e:
-        logger.error(f"❌ Prisma Database connection failed: {e}")
+        logger.error(f"❌ Database connection failed: {e}")
+        if settings.is_production():
+            raise e
     
     yield 
     
+    # إيقاف التشغيل
+    logger.info("🛑 Shutting down...")
     try:
         await db.disconnect()
-        logger.info("✅ Prisma Database disconnected successfully")
+        logger.info("✅ Database disconnected")
     except Exception as e:
-        logger.error(f"❌ Prisma Database disconnection failed: {e}")
+        logger.error(f"❌ Database disconnection failed: {e}")
 
-app = FastAPI(title="Restaurant SaaS", lifespan=lifespan)
+# إنشاء تطبيق FastAPI
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description="Multi-Restaurant SaaS Platform",
+    version=settings.VERSION,
+    lifespan=lifespan,
+    docs_url="/docs" if not settings.is_production() else None,
+    redoc_url="/redoc" if not settings.is_production() else None,
+)
 
-# ✅ استيراد auth من المجلد الرئيسي
-from app import auth
-
-# ✅ استيراد الرواتر من مجلد routers (تصحيح الاسم)
-from app.routes import dashboard, menu, orders, admin, upload
-
-# ✅ تسجيل الرواتر
-app.include_router(auth.router)        
-app.include_router(dashboard.router)   
-app.include_router(menu.router)        
-app.include_router(orders.router)      
-app.include_router(admin.router)       
-app.include_router(upload.router)
-
-logger.info("✅ Routers imported successfully")
-
-# ✅ CORS
+# إعداد CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",       # إضافة هذا السطر للاحتياط
-        "http://localhost:3000",
-        "https://resto.salmansaas.com",
-        "https://admin.salmansaas.com",
-    ],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+# ✅ تسجيل الراوترز مباشرة
+app.include_router(public_menu_router)
+app.include_router(admin_auth_router)
+app.include_router(admin_dashboard_router)
+app.include_router(admin_categories_router)
+app.include_router(admin_menu_items_router)
+app.include_router(admin_upload_router)
+app.include_router(public_orders_router)
 
+# نقاط النهاية العامة
 @app.get("/")
 async def root():
-    return {"message": "Restaurant API", "version": "1.0.0", "docs": "/docs"}
+    return {
+        "message": f"Welcome to {settings.PROJECT_NAME}",
+        "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT,
+        "docs": "/docs" if not settings.is_production() else "disabled in production",
+        "status": "operational"
+    }
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "timestamp": __import__('datetime').datetime.now().isoformat()
+    }
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", "8000"))
-    logger.info(f"🚀 Starting server on port {port}")
-    uvicorn.run("app.main:app", host="0.0.0.0", port=port, reload=False)
+    port = settings.PORT
+    logger.info(f"🚀 Server running on port {port}")
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=settings.is_development(),
+    )

@@ -1,2 +1,5 @@
-from .menu import MenuItem
-from .orders import OrderCreate, OrderResponse
+# app/schemas/__init__.py
+"""
+Pydantic schemas for data validation
+"""
+# Import from submodules as needed

@@ -1,23 +1,32 @@
+# app/schemas/public/menu.py
 from pydantic import BaseModel
 from typing import Optional, List
+
 class RestaurantOut(BaseModel):
     id: str
     name_ar: str
     name_en: str
     slug: str
-    image_url: Optional[str] = None
-    cover_image: Optional[str] = None,
-    is_active: bool
     phone: Optional[str] = None
-    manager_id: Optional[str] = None
+    manager_phone: str
+    is_active: bool
+    image_url: Optional[str] = None
+    cover_image: Optional[str] = None
+    manager_id: str
+    
+    class Config:
+        from_attributes = True
 
 class CategoryOut(BaseModel):
     id: str
     name_ar: str
     name_en: str
-    sort_order: int
+    sort_order: Optional[int] = 0
     image_url: Optional[str] = None
     restaurant_id: str
+    
+    class Config:
+        from_attributes = True
 
 class MenuItemOut(BaseModel):
     id: str
@@ -28,13 +37,17 @@ class MenuItemOut(BaseModel):
     description_ar: Optional[str] = None
     description_en: Optional[str] = None
     price: float
-    currency: str
+    currency: str = "LBP"
     image_url: Optional[str] = None
-    is_available: bool
+    is_available: bool = True
     
-MenuItem = MenuItemOut
+    class Config:
+        from_attributes = True
+
 class FullMenuOut(BaseModel):
     restaurant: RestaurantOut
     categories: List[CategoryOut]
     items: List[MenuItemOut]
     
+    class Config:
+        from_attributes = True
