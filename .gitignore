@@ -14,3 +14,4 @@ frontend/.env
 # Prisma & OS
 prisma/dev.db
 .DS_Storec
+node_modules
