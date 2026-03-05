@@ -1,4 +1,3 @@
-// src/components/menu/MenuSection.jsx
 import React from 'react';
 import MenuItemCard from './MenuItemCard';
 
@@ -16,7 +15,7 @@ const MenuSection = ({ category, items, lang, onAddToCart }) => {
 
     return (
         <div className="mb-8 scroll-mt-32" id={`category-${category.id}`}>
-            {/* رأس الفئة مع صورة */}
+            {/* رأس الفئة مع صورة - بدون عرض العدد */}
             <div className="relative mb-4">
                 {category.image_url && (
                     <div className="absolute inset-0 opacity-10 rounded-2xl overflow-hidden">
@@ -31,9 +30,9 @@ const MenuSection = ({ category, items, lang, onAddToCart }) => {
                     <h2 className="text-2xl font-bold text-gray-800">
                         {categoryName}
                     </h2>
-                    <span className="bg-orange-100 text-orange-600 text-sm px-3 py-1 rounded-full">
+                    {/* <span className="bg-orange-100 text-orange-600 text-sm px-3 py-1 rounded-full">
                         {categoryItems.length} {lang === 'ar' ? 'صنف' : 'items'}
-                    </span>
+                    </span> */}
                 </div>
             </div>
 

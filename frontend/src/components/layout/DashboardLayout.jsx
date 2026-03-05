@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import LanguageSwitcher from '../common/LanguageSwitcher';
-import { useLanguage } from '../../contexts/LanguageContext';  // ✅ صحيح
+import { useLanguage } from '../../contexts/LanguageContext';
+
 const DashboardLayout = ({ children, restaurantName }) => {
     const navigate = useNavigate();
     const { slug } = useParams();
     const location = useLocation();
-    const { lang } = useLanguage(); // ✅ استخدام اللغة
+    const { lang } = useLanguage();
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const handleLogout = () => {
@@ -21,18 +22,11 @@ const DashboardLayout = ({ children, restaurantName }) => {
         { name: lang === 'ar' ? 'إدارة الأصناف' : 'Menu Items', path: `/dashboard/${slug}/items`, icon: '🍽️' },
     ];
 
-    const toggleSidebar = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
+    const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
     return (
         <div className="min-h-screen flex bg-gray-50" dir={lang === 'ar' ? 'rtl' : 'ltr'}>
-            {/* زر اللغة في الأعلى */}
-            <div className="fixed top-4 left-4 z-50">
-                <LanguageSwitcher />
-            </div>
-
-            {/* 📱 زر القائمة الجانبية للموبايل */}
+            {/* زر القائمة الجانبية للموبايل */}
             <button 
                 onClick={toggleSidebar}
                 className="lg:hidden fixed top-4 right-4 z-50 bg-orange-600 text-white p-3 rounded-lg shadow-lg"
@@ -42,14 +36,13 @@ const DashboardLayout = ({ children, restaurantName }) => {
                 </svg>
             </button>
 
-            {/* 📋 القائمة الجانبية (Sidebar) */}
+            {/* القائمة الجانبية (Sidebar) */}
             <aside className={`
                 fixed lg:static inset-y-0 right-0 z-40
                 transform transition-transform duration-300 ease-in-out
                 w-64 bg-white shadow-xl flex flex-col
                 ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
             `}>
-                {/* زر إغلاق القائمة على الموبايل */}
                 <button 
                     onClick={toggleSidebar}
                     className="lg:hidden absolute top-4 left-4 text-gray-600"
@@ -99,14 +92,15 @@ const DashboardLayout = ({ children, restaurantName }) => {
                 </div>
             </aside>
 
-            {/* 📱 محتوى الصفحة الرئيسي */}
+            {/* المحتوى الرئيسي */}
             <main className="flex-1 flex flex-col overflow-hidden">
-                {/* الشريط العلوي (Topbar) */}
+                {/* الشريط العلوي (Topbar) مع زر اللغة بجانب الاسم */}
                 <header className="bg-white shadow-sm min-h-20 flex items-center justify-between px-4 lg:px-8 py-3 lg:py-0">
-                    <div className="mr-12 lg:mr-0">
+                    <div className="mr-12 lg:mr-0 flex items-center gap-2">
                         <h1 className="text-xl lg:text-2xl font-bold text-gray-800">
                             {restaurantName || (lang === 'ar' ? 'جاري التحميل...' : 'Loading...')}
                         </h1>
+                        <LanguageSwitcher />
                     </div>
                     <div className="bg-gray-100 px-3 py-1 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm font-mono text-gray-600 border border-gray-200">
                         <span className="hidden lg:inline">{lang === 'ar' ? 'معرف النظام: ' : 'System ID: '}</span>
@@ -114,13 +108,13 @@ const DashboardLayout = ({ children, restaurantName }) => {
                     </div>
                 </header>
 
-                {/* المحتوى المتغير (Children) */}
+                {/* المحتوى المتغير */}
                 <div className="flex-1 overflow-auto p-4 lg:p-8">
                     {children}
                 </div>
             </main>
 
-            {/* خلفية داكنة عند فتح القائمة على الموبايل */}
+            {/* خلفية داكنة للموبايل */}
             {sidebarOpen && (
                 <div 
                     className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"

@@ -1,4 +1,4 @@
-// src/pages/RestaurantPage.jsx
+// src/pages/RestaurantPage.jsx (المعدل)
 import React, { useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useMenuData } from '../hooks/useMenuData';
@@ -9,7 +9,7 @@ import MenuSection from '../components/menu/MenuSection';
 import CartModal from '../components/common/CartModal';
 import FloatingCart from '../components/layout/FloatingCart';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
-// ✅ قائمة بالـ slugs المحجوزة
+
 const RESERVED_SLUGS = ['login', 'dashboard', 'admin', 'api', 'assets'];
 
 const RestaurantPage = () => {
@@ -18,15 +18,13 @@ const RestaurantPage = () => {
     const { addToCart, cart } = useCart();
     const [activeCategory, setActiveCategory] = useState(null);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    
-    // ✅ إذا كان slug محجوزاً، نوجه للصفحة الرئيسية
+
     if (RESERVED_SLUGS.includes(slug)) {
         return <Navigate to="/" />;
     }
-    
+
     const { data: menu, loading, error } = useMenuData(slug);
 
-    // التمرير إلى الفئة المحددة
     const scrollToCategory = (categoryId) => {
         setActiveCategory(categoryId);
         const element = document.getElementById(`category-${categoryId}`);
@@ -108,12 +106,7 @@ const RestaurantPage = () => {
                     <h1 className="text-3xl font-bold text-gray-800 mb-2">
                         {lang === 'ar' ? menu.restaurant.name_ar : menu.restaurant.name_en}
                     </h1>
-                    {menu.restaurant.phone && (
-                        <a href={`tel:${menu.restaurant.phone}`} className="text-orange-600 hover:text-orange-700 inline-flex items-center gap-2">
-                            <i className="fas fa-phone"></i>
-                            {menu.restaurant.phone}
-                        </a>
-                    )}
+                    {/* تم إزالة عرض رقم الهاتف هنا */}
                 </div>
 
                 {/* شريط الفئات */}
@@ -124,8 +117,8 @@ const RestaurantPage = () => {
                     onCategoryClick={scrollToCategory}
                 />
 
-                {/* أقسام القائمة */}
-                <div className="mt-6 space-y-8">
+                {/* أقسام القائمة - الآن بعرض نصف الشاشة (max-w-2xl) ومتمركز */}
+                <div className="mt-6 space-y-8 max-w-2xl mx-auto">
                     {menu.categories.map(category => (
                         <MenuSection 
                             key={category.id}
